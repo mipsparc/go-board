@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"myapp/repo"
+	"myapp/src/repo"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
@@ -49,27 +49,24 @@ func home(c *echo.Context) error {
 	return c.JSON(http.StatusOK, threads)
 }
 
-func login(c *echo.Context) error {
-	return c.String(http.StatusOK, "ログイン")
-	// メールアドレス認証
-	// 実際にメールを当該のアドレスにワンタイムトークンを発行してその画面のまま入力して認証する Valkeyを用いる
-	// SendGrid(keyはいったん、env)の無料枠を使う
-}
-
 func showJoin(c *echo.Context) error {
 	return c.String(http.StatusOK, "ユーザー登録します")
 	// ユーザー登録を促す画面、入力フォーム(CSRF防止でCORS、メルアド)
 }
 
 func join(c *echo.Context) error {
-	// メールアドレスに認証メールを送る(ログインと同じロジック)
+	// 実際にメールを当該のアドレスにワンタイムトークンを発行してその画面のまま入力して認証する Valkeyを用いる
+	// SendGrid(keyはいったん、env)の無料枠を使う
 	return c.String(http.StatusOK, "ユーザー登録確認メールが送信されました")
 }
 
 func showThread(c *echo.Context) error {
 	threadID := c.Param("id")
+	// thread_id のバリデーション(大きな文字列など)
 
-	return c.String(http.StatusOK, threadID)
+	posts := DB.GetPostsByThreadID(threadID)
+
+	return c.JSON(http.StatusOK, posts)
 	// スレッドの内容を表示する
 	// XSS対策は、フロントエンドでHTMLではなくテキスト(innerText)として表示することで実現
 }

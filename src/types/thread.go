@@ -1,6 +1,6 @@
 package types
 
 type Thread struct {
-	ID    string `json:"thread_id"`
-	Title string `json:"title"`
+	ThreadID string `json:"thread_id"`
+	Title    string `json:"title"`
 }
