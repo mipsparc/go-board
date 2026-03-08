@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"log/slog"
+	"math/rand/v2"
 	"myapp/src/repo"
+	"myapp/src/types"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
@@ -71,8 +75,29 @@ func showThread(c *echo.Context) error {
 
 func postThread(c *echo.Context) error {
 	threadID := c.Param("id")
-	_ = c.FormValue("text")
 
-	return c.String(http.StatusOK, threadID)
+	// スレッド存在確認する
+
+	p := types.TextPostInput{}
+	if err := c.Bind(&p); err != nil {
+		slog.Info(err.Error())
+		return c.String(http.StatusBadRequest, "something went wrong")
+	}
+	if p.UserID == 0 ||
+		p.Text == "" {
+		return c.String(http.StatusBadRequest, "required fields missing")
+	}
+
+	// 制御文字除去などをする
+	// あとで認証する
+
+	p.PostID = rand.Int64()
+	p.ThreadID = threadID
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	p.Time = time.Now().In(jst).Format(time.DateTime)
+
+	DB.InsertTextPost(p)
+
+	return c.String(http.StatusOK, "投稿成功(仮レスポンス)")
 	// まずは文字列のみ受け付ける。将来的に画像も受け付ける
 }

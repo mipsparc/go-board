@@ -97,3 +97,15 @@ func (db *DataBase) GetPostsByThreadID(threadID string) types.Posts {
 
 	return posts
 }
+
+func (db *DataBase) InsertTextPost(post types.TextPostInput) {
+	_, err := db.RDB.Exec(`
+	INSERT INTO post (post_id, thread_id, user_id, text, time) VALUES
+	   (?, ?, ?, ?, CURRENT_TIMESTAMP);
+	`,
+		post.PostID, post.ThreadID, post.UserID, post.Text)
+	if err != nil {
+		slog.Error("Error inserting post", err.Error())
+		return
+	}
+}
