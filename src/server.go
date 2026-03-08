@@ -1,15 +1,24 @@
 package main
 
 import (
+	"context"
+	"myapp/repo"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
+	"golang.org/x/crypto/acme/autocert"
 )
+
+var DB *repo.DataBase
 
 func main() {
 	e := echo.New()
+
+	e.Use(middleware.Recover())
 	e.Use(middleware.RequestLogger())
+
+	DB = repo.CreateRDB()
 
 	e.GET("/", home)
 	e.GET("/join", showJoin)
@@ -17,31 +26,33 @@ func main() {
 	e.GET("/thread/:id", showThread)
 	e.POST("/thread/:id", postThread)
 
-	if err := e.Start(":1323"); err != nil {
+	m := &autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("golang.mipsparc.net"),
+		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
+		Cache: autocert.DirCache("/var/www/.cache"),
+		Email: "mipsparc@gmail.com",
+	}
+
+	sc := echo.StartConfig{
+		Address:   ":443",
+		TLSConfig: m.TLSConfig(),
+	}
+	if err := sc.Start(context.Background(), e); err != nil {
 		e.Logger.Error("failed to start server", "error", err)
 	}
 }
 
-type Thread struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-}
-
 func home(c *echo.Context) error {
-	threads := []Thread{
-		{ID: "dead-beef-hoge", Title: "雑談"},
-		{ID: "dead-beef-foo", Title: "鉄道技術雑談"},
-		{ID: "beef-dead-hoge", Title: "最新動向(スジなども)雑談"},
-	}
+	threads := DB.ThreadList()
 
 	return c.JSON(http.StatusOK, threads)
-	// スレッドの一覧とリンク、概要を出す、ログイン動線
 }
 
 func login(c *echo.Context) error {
 	return c.String(http.StatusOK, "ログイン")
 	// メールアドレス認証
-	// 実際にメールを当該のアドレスに送ってワンタイムトークンを発行して認証する Valkeyを用いる
+	// 実際にメールを当該のアドレスにワンタイムトークンを発行してその画面のまま入力して認証する Valkeyを用いる
 	// SendGrid(keyはいったん、env)の無料枠を使う
 }
 
