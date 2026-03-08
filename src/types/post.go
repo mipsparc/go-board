@@ -8,6 +8,7 @@ type Posts struct {
 }
 type Post struct {
 	PostID     string       `json:"post_id"`
+	UserName   string       `json:"user_name"`
 	Text       string       `json:"text"`
 	Time       string       `json:"time"`
 	ExtContent []ExtContent `json:"ext_content"`

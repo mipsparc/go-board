@@ -67,12 +67,11 @@ func showThread(c *echo.Context) error {
 	posts := DB.GetPostsByThreadID(threadID)
 
 	return c.JSON(http.StatusOK, posts)
-	// スレッドの内容を表示する
-	// XSS対策は、フロントエンドでHTMLではなくテキスト(innerText)として表示することで実現
 }
 
 func postThread(c *echo.Context) error {
 	threadID := c.Param("id")
+	_ = c.FormValue("text")
 
 	return c.String(http.StatusOK, threadID)
 	// まずは文字列のみ受け付ける。将来的に画像も受け付ける

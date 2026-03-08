@@ -51,9 +51,10 @@ func (db *DataBase) ThreadList() []types.Thread {
 
 func (db *DataBase) GetPostsByThreadID(threadID string) types.Posts {
 	rows, err := db.RDB.Query(`
-		SELECT post_id, thread.title, text, time
+		SELECT post_id, thread.title, user_name, text, time
 		FROM post
 		JOIN thread ON post.thread_id = thread.thread_id
+		JOIN user ON post.user_id = user.user_id
 		WHERE post.thread_id=?
 	`, threadID)
 	if err != nil {
@@ -69,15 +70,17 @@ func (db *DataBase) GetPostsByThreadID(threadID string) types.Posts {
 	var postList []types.Post
 	for rows.Next() {
 		var postID string
+		var userName string
 		var text string
 		var time string
-		if err := rows.Scan(&postID, &title, &text, &time); err != nil {
+		if err := rows.Scan(&postID, &title, &userName, &text, &time); err != nil {
 			slog.Error("Error getting post list")
 			return types.Posts{}
 		}
 		postList = append(postList,
 			types.Post{
 				PostID:     postID,
+				UserName:   userName,
 				Text:       text,
 				Time:       time,
 				ExtContent: nil,

@@ -26,13 +26,23 @@ func main() {
 		CREATE TABLE post (
 		    post_id TEXT NOT NULL PRIMARY KEY,
 		    thread_id TEXT NOT NULL,
+		    user_id INT NOT NULL,
 		    text TEXT NOT NULL,
 		    time TEXT NOT NULL
 		);
-		INSERT INTO post (post_id, thread_id, text, time) VALUES
-			("193959-309349", "dead-beef-hoge", "テスト1 in とりとめもない雑談", "2026-03-07 00:00:00"),
-			("432430-413091", "dead-beef-hoge", "テスト2 in とりとめもない雑談", "2026-03-07 02:00:00"),
-			("243832-093298", "dead-beef-hoge", "テスト3 in とりとめもない雑談", "2026-04-07 03:00:00")
+		CREATE TABLE user (
+		    user_id INTEGER NOT NULL PRIMARY KEY,
+		    user_name TEXT NOT NULL,
+		    user_mail TEXT NOT NULL
+		);
+		INSERT INTO user (user_id, user_name, user_mail) VALUES
+			(1, "mipsparc", "mipsparc@gmail.com"),
+			(2, "yosame", "hoge@example.com")
+		;
+		INSERT INTO post (post_id, thread_id, user_id, text, time) VALUES
+			("193959-309349", "dead-beef-hoge", 1, "テスト1 in とりとめもない雑談", "2026-03-07 00:00:00"),
+			("432430-413091", "dead-beef-hoge", 1, "テスト2 in とりとめもない雑談", "2026-03-07 02:00:00"),
+			("243832-093298", "dead-beef-hoge", 2, "テスト3 in yosameとりとめもない雑談", "2026-04-07 03:00:00")
 		;
 	`
 	_, err = db.Exec(stmt)
