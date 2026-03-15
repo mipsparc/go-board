@@ -9,6 +9,7 @@ import (
 	"myapp/src/types"
 	"net/http"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v5"
@@ -69,8 +70,10 @@ func join(c *echo.Context) error {
 }
 
 func showThread(c *echo.Context) error {
-	threadID := c.Param("id")
-	// thread_id のバリデーション(大きな文字列など)
+	threadID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.String(http.StatusBadRequest, "something went wrong")
+	}
 
 	posts := DB.GetPostsByThreadID(threadID)
 
@@ -79,7 +82,10 @@ func showThread(c *echo.Context) error {
 
 // まずは文字列のみ受け付けるが将来的に画像も受け付ける
 func postThread(c *echo.Context) error {
-	threadID := c.Param("id")
+	threadID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.String(http.StatusBadRequest, "something went wrong")
+	}
 
 	if !DB.CheckExistenceThread(threadID) {
 		return c.String(http.StatusBadRequest, "something went wrong")

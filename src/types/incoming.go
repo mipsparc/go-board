@@ -3,7 +3,7 @@ package types
 type TextPostInput struct {
 	UserID   int    `json:"user_id"`
 	Text     string `json:"text"`
-	ThreadID string
+	ThreadID int
 	PostID   int64
 	Time     string
 }

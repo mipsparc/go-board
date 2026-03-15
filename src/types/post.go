@@ -1,7 +1,7 @@
 package types
 
 type Posts struct {
-	ThreadID string `json:"thread_id"`
+	ThreadID int    `json:"thread_id"`
 	Title    string `json:"title"`
 	Total    int    `json:"total"`
 	Posts    []Post `json:"posts"`

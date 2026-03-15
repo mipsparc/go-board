@@ -50,7 +50,7 @@ func (db *DataBase) ThreadList() []types.Thread {
 	return threads
 }
 
-func (db *DataBase) GetPostsByThreadID(threadID string) types.Posts {
+func (db *DataBase) GetPostsByThreadID(threadID int) types.Posts {
 	rows, err := db.RDB.Query(`
 		SELECT post_id, thread.title, user_name, text, time
 		FROM post
@@ -99,7 +99,7 @@ func (db *DataBase) GetPostsByThreadID(threadID string) types.Posts {
 	return posts
 }
 
-func (db *DataBase) CheckExistenceThread(threadID string) bool {
+func (db *DataBase) CheckExistenceThread(threadID int) bool {
 	result, err := db.RDB.Query(`
 		SELECT COUNT(1)
 		FROM thread
