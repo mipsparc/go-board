@@ -33,7 +33,7 @@ func (db *DataBase) ThreadList() []types.Thread {
 	var threads []types.Thread
 
 	for rows.Next() {
-		var threadID string
+		var threadID int
 		var title string
 		if err := rows.Scan(&threadID, &title); err != nil {
 			slog.Error("Error getting thread list")
