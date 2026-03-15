@@ -25,6 +25,11 @@ func main() {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestLogger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:8000"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}),
+	)
 
 	DB = repo.CreateRDB()
 	jst, _ = time.LoadLocation("Asia/Tokyo")
