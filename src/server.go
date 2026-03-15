@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math/rand/v2"
 	"myapp/src/repo"
 	"myapp/src/types"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/labstack/echo/v5"
@@ -15,6 +17,7 @@ import (
 )
 
 var DB *repo.DataBase
+var jst *time.Location
 
 func main() {
 	e := echo.New()
@@ -23,6 +26,7 @@ func main() {
 	e.Use(middleware.RequestLogger())
 
 	DB = repo.CreateRDB()
+	jst, _ = time.LoadLocation("Asia/Tokyo")
 
 	e.GET("/", home)
 	e.GET("/join", showJoin)
@@ -73,31 +77,38 @@ func showThread(c *echo.Context) error {
 	return c.JSON(http.StatusOK, posts)
 }
 
+// まずは文字列のみ受け付けるが将来的に画像も受け付ける
 func postThread(c *echo.Context) error {
 	threadID := c.Param("id")
 
-	// スレッド存在確認する
+	if !DB.CheckExistenceThread(threadID) {
+		return c.String(http.StatusBadRequest, "something went wrong")
+	}
 
 	p := types.TextPostInput{}
 	if err := c.Bind(&p); err != nil {
 		slog.Info(err.Error())
 		return c.String(http.StatusBadRequest, "something went wrong")
 	}
+
+	// 制御文字除去
+	re := regexp.MustCompile(`[^\P{C}\u{200D}\n]`)
+	p.Text = fmt.Sprintf("%s", re.ReplaceAll([]byte(p.Text), []byte("")))
+
 	if p.UserID == 0 ||
 		p.Text == "" {
 		return c.String(http.StatusBadRequest, "required fields missing")
 	}
 
-	// 制御文字除去などをする
-	// あとで認証する
+	// 認証する機能追加
 
 	p.PostID = rand.Int64()
+	// post_id がすでに存在しないか確認して存在したら再生成する
+
 	p.ThreadID = threadID
-	jst, _ := time.LoadLocation("Asia/Tokyo")
 	p.Time = time.Now().In(jst).Format(time.DateTime)
 
 	DB.InsertTextPost(p)
 
 	return c.String(http.StatusOK, "投稿成功(仮レスポンス)")
-	// まずは文字列のみ受け付ける。将来的に画像も受け付ける
 }

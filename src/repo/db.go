@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log/slog"
 	"myapp/src/types"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -98,11 +99,33 @@ func (db *DataBase) GetPostsByThreadID(threadID string) types.Posts {
 	return posts
 }
 
+func (db *DataBase) CheckExistenceThread(threadID string) bool {
+	result, err := db.RDB.Query(`
+		SELECT COUNT(1)
+		FROM thread
+		WHERE post.thread_id=?
+		`, threadID)
+	if err != nil {
+		slog.Error("Error checking existence thread", err.Error())
+	}
+	// nilになることは考慮外だが、静的解析避け
+	if result == nil {
+		return false
+	}
+	defer result.Close()
+
+	if !result.Next() {
+		return false
+	}
+	return true
+}
+
 func (db *DataBase) InsertTextPost(post types.TextPostInput) {
-	_, err := db.RDB.Exec(`
-	INSERT INTO post (post_id, thread_id, user_id, text, time) VALUES
-	   (?, ?, ?, ?, CURRENT_TIMESTAMP);
-	`,
+	_, err := db.RDB.Exec(strings.ReplaceAll(`
+			INSERT INTO post (post_id, thread_id, user_id, text, time) VALUES
+			   (?, ?, ?, ?, CURRENT_TIMESTAMP)
+			ON DUPLICATE KEY UPDATE ""post_id"" = ""post_id"";
+		`, `""`, "`"),
 		post.PostID, post.ThreadID, post.UserID, post.Text)
 	if err != nil {
 		slog.Error("Error inserting post", err.Error())
